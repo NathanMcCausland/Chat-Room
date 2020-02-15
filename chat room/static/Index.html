@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="js/JQuery.js"></script>
+    <script src="js/socket.io.js"></script>
+    <title>Chat Room</title>
+</head>
+
+<div id="row1">
+    <div class="textArea" id="textArea">
+
+    </div>
+    <div id="usersDiv">
+        <div id="usersOnlineLabel">
+        <b style="font-weight: bold; font-size: 24pt;">Users Online</b>
+        </div>
+        <div id="usersList">
+        </div>
+    </div>
+</div>
+
+<div>
+
+</div>
+
+<footer id="footer">
+    <input class="chatTextField" id="textInput" placeholder="Enter a message...">
+    <button id="sendButton" onclick="sendMessage()">Send</button>
+</footer>
+</html>
+<script>
+    const socket = io();
+    var usersOnline = [];
+    var myUsername = 'NULL';
+    let textArea = document.getElementById("textArea");
+
+    socket.on('new message', function(message, username)
+    {
+        textArea.innerHTML += "[" + username + "]: " + message + "<br>";
+        textArea.scrollTop = textArea.scrollHeight;
+    });
+
+    socket.on('send temp username', function(username)
+    {
+        myUsername = username;
+    });
+
+    socket.on('user joined', function(user)
+    {
+        usersOnline.push(user);
+        refreshUsersList();
+    });
+
+    socket.on('user left', function(user)
+    {
+        usersOnline.splice(usersOnline.indexOf(user), 1);
+        refreshUsersList();
+    });
+
+    $(document).keypress(function(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+
+    function sendMessage()
+    {
+        socket.emit('new message', document.getElementById('textInput').value, myUsername);
+        document.getElementById('textInput').value = '';
+    }
+
+    function refreshUsersList()
+    {
+        document.getElementById('usersList').innerHTML = '';
+        for(let user of usersOnline) {
+            document.getElementById('usersList').innerHTML += user + "<br>";
+        }
+    }
+</script>
+
+<style>
+html, body
+{
+    background: rgba(120,162,201,0.41);
+    margin:0;
+    padding:0;
+}
+
+div
+{
+
+}
+
+#row1
+{
+    float: left;
+    display: table;
+    clear: both;
+}
+
+#usersOnlineLabel
+{
+    text-align: center;
+    color:white;
+    background: #2c9349;
+    height: 5vh;
+}
+
+#usersDiv
+{
+    float: left;
+    width: 26vw;
+    margin-top: 7vh;
+    border: 1px solid darkgray;
+}
+
+#usersList
+{
+    padding-left: 4px;
+    padding-top: 2px;
+    background: #f0f0f0;
+    height: 79.7vh;
+    overflow: scroll;
+}
+
+.textArea
+{
+    float: left;
+    padding-left: 2px;
+    padding-top: 2px;
+    background: #f0f0f0;
+    margin: 7vh 1vw;
+    width: 70vw;
+    height: 85vh;
+    border: 1px solid darkgray;
+    overflow: scroll;
+}
+
+#footer {
+    position:absolute;
+    left: 1vw;
+    bottom: 0vh;
+    max-height: 100%;
+    max-width:100%;
+    height:6vh;
+}
+
+.chatTextField
+{
+    width: 70vw;
+    height: 3vh;
+}
+
+button
+{
+    width: 100px;
+    height: 4vh;
+    background-color: #2c9349;
+    color:  #FFFFFF;
+    border: 1px solid #2c9349;
+    border-radius: 3px;
+}
+</style>
