@@ -5,11 +5,12 @@
     <script src="js/JQuery.js"></script>
     <script src="js/socket.io.js"></script>
     <title>Chat Room</title>
+    <link rel='stylesheet' type='text/css' href='style.css'/>
 </head>
-
-<div id="row1">
+<body>
+<div class="row">
+    <button id="logOutButton">Log Out</button>
     <div class="textArea" id="textArea">
-
     </div>
     <div id="usersDiv">
         <div id="usersOnlineLabel">
@@ -19,21 +20,43 @@
         </div>
     </div>
 </div>
-
-<div>
-
-</div>
-
 <footer id="footer">
     <input class="chatTextField" id="textInput" placeholder="Enter a message...">
     <button id="sendButton" onclick="sendMessage()">Send</button>
 </footer>
+</body>
+<div class="modal">
+    <div class="modal-content" id="logInModal">
+        <span id="logInModal-Header"><h class="modalHeaderText">Sign In</h></span>
+        <p style="margin-left: 5%;">Please sign in or register to continue.</p>
+        <div class="row" style="margin-top: 5%; width: 100%; height: 100%;">
+        <button id="logInButton" onClick="window.location.replace('/login.html')">Log In</button>
+        <a class="button" id="signUpButton" href="/register.html">Sign Up</a>
+        </div>
+    </div>
+</div>
+
 </html>
 <script>
     const socket = io();
-    var usersOnline = [];
+    var usersOnline = new  Set();
     var myUsername = 'NULL';
     let textArea = document.getElementById("textArea");
+
+    $(document).ready(function()
+    {
+        socket.emit('token login', readCookie("token")); // Try to login with token
+    });
+
+    socket.on('token login successful', function(username)
+    {
+        // alert("Welcome, " + username);
+    });
+
+    socket.on('token error', function()
+    {
+        // window.location.replace("/login.html");
+    });
 
     socket.on('new message', function(message, username)
     {
@@ -48,13 +71,13 @@
 
     socket.on('user joined', function(user)
     {
-        usersOnline.push(user);
+        usersOnline.add(user);
         refreshUsersList();
     });
 
     socket.on('user left', function(user)
     {
-        usersOnline.splice(usersOnline.indexOf(user), 1);
+        usersOnline.delete(user);
         refreshUsersList();
     });
 
@@ -66,7 +89,7 @@
 
     function sendMessage()
     {
-        socket.emit('new message', document.getElementById('textInput').value, myUsername);
+        socket.emit('new message', document.getElementById('textInput').value, readCookie("token"));
         document.getElementById('textInput').value = '';
     }
 
@@ -77,22 +100,71 @@
             document.getElementById('usersList').innerHTML += user + "<br>";
         }
     }
+
+    function readCookie(name) {
+        var nameEQ = name + "=";
+        var ca = document.cookie.split(';');
+        for (var i = 0; i < ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+        }
+        return null;
+    }
 </script>
 
 <style>
-html, body
+html
 {
-    background: rgba(120,162,201,0.41);
-    margin:0;
-    padding:0;
+    font-family: "Roboto Light",sans-serif;
 }
 
-div
+.modalHeaderText
 {
-
+    font-weight: bold;
+    text-align: center;
+    font-size: xx-large;
+    color: white;
+    vertical-align: middle;
+    padding-top: 10px;
 }
 
-#row1
+#logInModal *
+{
+    display: block;
+}
+
+#logInModal-Header
+{
+    width: 100%;
+    height: 30%;
+    background-color: #8198bf;
+}
+
+.modal
+{
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding-top: 12.5%;
+    padding-left: 35%;
+    position: fixed;
+    background-color: rgba(0,0,0,0.6);
+    z-index: 1;
+}
+
+.modal-content
+{
+    width: 30%;
+    height: 25%;
+    background-color: #f3f3f3;
+    border-radius: 2%;
+    margin-bottom: -200px;
+    margin-right: 2px;
+    border: 4px solid #767676;
+}
+
+.row
 {
     float: left;
     display: table;
@@ -103,16 +175,30 @@ div
 {
     text-align: center;
     color:white;
-    background: #2c9349;
+    background: #8198bf;
     height: 5vh;
+}
+
+#logOutButton
+{
+    float: right;
+    margin-right: 1.6vw;
+    margin-top: 2vh;
+    width: 5vw;
+    height: 4vh;
 }
 
 #usersDiv
 {
     float: left;
     width: 26vw;
-    margin-top: 7vh;
+    margin-top: 1vh;
     border: 1px solid darkgray;
+}
+
+#sendButton
+{
+    height: 4vh;
 }
 
 #usersList
@@ -122,6 +208,7 @@ div
     background: #f0f0f0;
     height: 79.7vh;
     overflow: scroll;
+    overflow-x: hidden;
 }
 
 .textArea
@@ -135,6 +222,7 @@ div
     height: 85vh;
     border: 1px solid darkgray;
     overflow: scroll;
+    overflow-x: hidden;
 }
 
 #footer {
@@ -150,15 +238,63 @@ div
 {
     width: 70vw;
     height: 3vh;
+    padding-left: 5px;
 }
 
-button
+#logInButton
 {
-    width: 100px;
-    height: 4vh;
-    background-color: #2c9349;
+    float: right;
+    margin-right: 5%;
+    width: 35%;
+    height: 20%;
+}
+
+#signUpButton:hover
+{
+    text-decoration-color: black;
+}
+
+#signUpButton
+{
+    transition: text-decoration .2s ease;
+    text-decoration: underline solid transparent;
+    color: black;
+    margin-left: 5%;
+    float: left;
+    width: 35%;
+    height: 20%;
+    background-color: transparent;
+}
+
+.button:before{
+    content : '';
+    display : inline-block;
+    width : 0; height : 100%;
+    vertical-align : middle;
+}
+
+.button
+{
+    display: table-cell !important;
+    text-align: center;
+}
+
+button, .button
+{
+    background-color: #5d73bd;
     color:  #FFFFFF;
-    border: 1px solid #2c9349;
-    border-radius: 3px;
+    border: none;
+    border-radius: 2px;
+    font-weight: bold;
+}
+
+button:hover
+{
+    background-color: #576cb1;
+}
+
+button:active
+{
+    background-color: #206a35;
 }
 </style>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat Room: Login</title>
+    <script src="js/JQuery.js"></script>
+    <script src="http://malsup.github.com/jquery.form.js"></script>
+    <link rel='stylesheet' type='text/css' href='style.css'/>
+</head>
+<body>
+<div id="loginBox">
+    <h1 class="formTitle">User Registration</h1>
+    <hr>
+    <form id="registerForm" action="register" method="POST" onsubmit="return validatePasswordsMatch()">
+        <div class="labelInputDiv">
+            <label for="usernameField">Username</label>
+            <input id="usernameField" placeholder="" name="username" autocomplete="off" required>
+        </div>
+
+        <div class="labelInputDiv">
+            <label for="password">Password</label>
+            <input id="password" placeholder="" type="password" name="password" autocomplete="off" required>
+        </div>
+
+        <div class="labelInputDiv">
+            <label for="confirmPassword">Confirm Password</label>
+            <input id="confirmPassword" placeholder="" type="password" name="confirmPassword" autocomplete="off" required>
+        </div>
+        <div id="errorContainer">
+        <p id="errorText"></p>
+        </div>
+        <input type="submit" value="Submit" class="blockButton">
+        <p style="text-align: center">Already have an account? <a href="login.html">Login</a></p>
+    </form>
+</div>
+<br>
+</body>
+</html>
+
+<script>
+    function validatePasswordsMatch()
+    {
+        if(document.getElementById("password").value !== document.getElementById("confirmPassword").value)
+        {
+            document.getElementById("errorText").innerHTML = "Passwords do not match.";
+            addRedOutline("password");
+            addRedOutline("confirmPassword");
+            return false;
+        }
+        return true;
+    }
+
+    function addRedOutline(elementId)
+    {
+        document.getElementById(elementId).style.boxShadow = "0px 0px 5px 0px red";
+        document.getElementById(elementId).style.border = "1px solid red";
+        document.getElementById(elementId).style.outline = "none";
+    }
+
+    $('#registerForm')
+        .ajaxForm({
+            url : '/register',
+            method: 'POST',
+            dataType : 'json',
+
+            beforeSend: function()
+            {
+
+            },
+            success : function (response) {
+                // document.getElementById("errorText").innerHTML = JSON.parse(response).status;
+                window.location.replace("/login.html");
+            },
+            error: function(req, status, error)
+            {
+                var data = JSON.parse(req.responseText);
+                document.getElementById("errorText").innerHTML = data.status;
+
+                for(i in data['fields'])
+                {
+                    addRedOutline(data['fields'][i]);
+                }
+            }
+        });
+</script>
+
+<style>
+    #errorText
+    {
+        margin-left: 15%;
+        color: red;
+    }
+
+    hr
+    {
+        margin-top: 0%;
+        width: 90%;
+    }
+
+    .blockButton
+    {
+        color: white;
+        background: #6f72ff;
+        border: 1px solid #6f72ff;
+        width: 70%;
+        height: 5vh;
+        margin-left: 15%;
+        font-weight: bold;
+        font-size: medium;
+    }
+
+    button:hover
+    {
+        background: #6f72ff;
+        color: white;
+        border: 1px solid white;
+    }
+
+    button:active
+    {
+
+    }
+
+    label
+    {
+        font-weight: bold;
+        font-size: large;
+        color: #6e6e6e;
+        margin-left: 15%;
+        padding-bottom: 2px;
+    }
+
+    input
+    {
+        padding: 2%;
+        line-height: 2%;
+        font-size: x-large;
+        height: 7vh;
+        width: 21vw;
+        margin-left: 15%;
+    }
+
+    input, label
+    {
+        display: block;
+    }
+
+    body, div
+    {
+        font-family: "Roboto Light",sans-serif;
+    }
+
+    .formTitle
+    {
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .labelInputDiv
+    {
+        width: 100%;
+        padding-top: 2.5%;
+        padding-bottom: 3%;
+        float: left;
+    }
+
+    #loginBox *
+    {
+        box-sizing: border-box;
+    }
+
+    #loginBox
+    {
+        background: white;
+        border-radius: 1px;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        width: 30%;
+        height: 75vh;
+        margin-top: -37.5vh;
+        margin-left: -15vw;
+        box-shadow: 0px 0px 5px 2px #a1a1a1;
+    }
+</style>
